@@ -126,7 +126,11 @@ const App: React.FC = () => {
 
       <main className="px-4 md:px-8 pb-12 flex-grow">
         {currentPage ? (
-          <InfoPage slug={currentPage} onBack={() => setCurrentPage(null)} />
+          <InfoPage 
+            slug={currentPage} 
+            onBack={() => setCurrentPage(null)} 
+            guides={dynamicGuides}
+          />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-500">
             <article className="lg:col-span-8 space-y-10" itemScope itemType="https://schema.org/NewsArticle">
@@ -160,7 +164,7 @@ const App: React.FC = () => {
 
               <section aria-labelledby="news-wire-heading">
                 <h3 id="news-wire-heading" className="text-2xl sm:text-3xl font-bold mb-8 italic border-b-2 border-black pb-1 telugu-headline inline-block">తాజా వార్తా ప్రవాహం</h3>
-                <DeepDiveGuides guides={dynamicGuides} />
+                <DeepDiveGuides guides={dynamicGuides} onRead={(slug) => setCurrentPage(slug)} />
               </section>
             </article>
 
