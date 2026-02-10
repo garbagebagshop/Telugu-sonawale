@@ -1,5 +1,5 @@
 import React from 'react';
-import { PriceData } from '../types';
+import { PriceData } from '../types.ts';
 
 interface PriceTickerProps {
   prices: PriceData;

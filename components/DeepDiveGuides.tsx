@@ -1,4 +1,5 @@
 import React from 'react';
+import { Twitter, Facebook, Share2 } from 'lucide-react';
 
 interface DeepDiveGuidesProps {
   guides: any[];
@@ -6,11 +7,23 @@ interface DeepDiveGuidesProps {
 }
 
 export const DeepDiveGuides: React.FC<DeepDiveGuidesProps> = ({ guides, onRead }) => {
-  const handleShare = (e: React.MouseEvent, title: string) => {
-    e.stopPropagation();
-    const tweetText = encodeURIComponent(`Market update from Sonawale: ${title}`);
-    const tweetUrl = encodeURIComponent('https://sonawale.com');
-    window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
+  const handleShare = (platform: 'twitter' | 'facebook' | 'whatsapp', title: string, slug: string) => {
+    const url = encodeURIComponent(`${window.location.origin}/#${slug}`);
+    const text = encodeURIComponent(`Market update from Sonawale: ${title}`);
+    
+    let shareUrl = '';
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${text}%20${url}`;
+        break;
+    }
+    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   return (
@@ -53,19 +66,37 @@ export const DeepDiveGuides: React.FC<DeepDiveGuidesProps> = ({ guides, onRead }
                 <span className="text-[10px] font-bold telugu-headline underline decoration-1" itemProp="name">{guide.author.name}</span>
                 <span className="text-[7px] uppercase tracking-tighter opacity-40 utility-font">{guide.author.role}</span>
               </div>
-              <div className="flex gap-4">
+              <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => onRead(guide.slug)}
-                  className="text-[9px] font-black uppercase tracking-widest border-b border-black utility-font hover:text-[#A52A2A]"
+                  onClick={(e) => { e.stopPropagation(); onRead(guide.slug); }}
+                  className="text-[9px] font-black uppercase tracking-widest border-b border-black utility-font hover:text-[#A52A2A] mr-2"
                 >
                   Read
                 </button>
-                <button 
-                  onClick={(e) => handleShare(e, guide.title)}
-                  className="text-[9px] font-black uppercase tracking-widest border-b border-black hover:text-[#A52A2A] utility-font"
-                >
-                  Share
-                </button>
+                
+                <div className="flex items-center gap-2 border-l border-black/10 pl-3">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleShare('twitter', guide.title, guide.slug); }}
+                    className="p-1 hover:text-[#1DA1F2] transition-colors"
+                    title="Share on Twitter"
+                  >
+                    <Twitter size={12} strokeWidth={3} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleShare('facebook', guide.title, guide.slug); }}
+                    className="p-1 hover:text-[#1877F2] transition-colors"
+                    title="Share on Facebook"
+                  >
+                    <Facebook size={12} strokeWidth={3} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleShare('whatsapp', guide.title, guide.slug); }}
+                    className="p-1 hover:text-[#25D366] transition-colors"
+                    title="Share on WhatsApp"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-whatsapp"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.8 8.5 8.5 0 0 1 5.3 1.4L22 3Z"/><path d="M17 10c-.2-.4-.5-.8-1-1.1s-1.1-.3-1.6-.1c-.4.2-.8.5-1.1 1-.2.3-.4.6-.7.8-.3.3-.6.5-1 .6-.3.1-.7.1-1-.1s-.6-.4-.8-.7c-.2-.3-.5-.5-.8-.7s-.7-.3-1-.2c-.4.1-.7.4-1 .7-.2.3-.3.7-.3 1.1s.1.8.4 1.1c.3.3.6.5 1 .6.3.1.7.1 1-.1.3-.2.6-.5.8-.8.3-.3.6-.5 1-.6.3-.1.7-.1 1 .1s.6.4.8.7c.2.3.5.5.8.7s.7.3 1 .2c.4-.1.7-.4 1-.7.2-.3.3-.7.3-1.1z"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

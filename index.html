@@ -6,7 +6,7 @@
     <title>Sonawale (తెలుగు) | Hyderabad Live Gold & Silver Price Registry</title>
     <meta name="description" content="హైదరాబాద్‌లో నేటి 22K/24K బంగారం మరియు వెండి ధరలు. తెలుగులో తాజా మార్కెట్ వార్తలు మరియు విశ్లేషణ. Verified 2026 market registry.">
     <link rel="canonical" href="https://telugu.sonawale.com" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@400;700;900&family=Mallanna&family=Mandali&display=swap');
       
@@ -38,6 +38,22 @@
         line-height: 1.8;
       }
 
+      /* Force Typography to respect Telugu fonts */
+      .prose h1, .prose h2, .prose h3, .prose h4 {
+        font-family: 'Mallanna', sans-serif !important;
+        color: var(--ink) !important;
+        margin-top: 2rem !important;
+        margin-bottom: 1rem !important;
+      }
+
+      .prose p, .prose li, .prose blockquote {
+        font-family: 'Mandali', sans-serif !important;
+        font-size: 1.125rem !important;
+        line-height: 1.8 !important;
+        color: #333 !important;
+        margin-bottom: 1.5rem !important;
+      }
+
       .utility-font {
         font-family: 'Montserrat', sans-serif;
       }
@@ -66,6 +82,7 @@
         text-decoration-style: dotted;
         text-underline-offset: 4px;
         font-weight: bold;
+        color: var(--accent-red);
       }
     </style>
 <script type="importmap">
@@ -76,7 +93,8 @@
     "react/": "https://esm.sh/react@^19.2.4/",
     "recharts": "https://esm.sh/recharts@^3.7.0",
     "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
   }
 }
 </script>

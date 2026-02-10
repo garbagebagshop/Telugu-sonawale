@@ -86,6 +86,11 @@ const App: React.FC = () => {
     localStorage.setItem('sonawale_current_prices', JSON.stringify(newPrices));
   };
 
+  const handleNavigate = (slug: string) => {
+    setCurrentPage(slug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen flex flex-col max-w-[1400px] mx-auto bg-[#F4F1EA] md:border-x border-black/20 overflow-x-hidden">
       <PriceTicker prices={prices} loading={loading} />
@@ -130,6 +135,7 @@ const App: React.FC = () => {
             slug={currentPage} 
             onBack={() => setCurrentPage(null)} 
             guides={dynamicGuides}
+            onRead={handleNavigate}
           />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-500">
@@ -164,7 +170,7 @@ const App: React.FC = () => {
 
               <section aria-labelledby="news-wire-heading">
                 <h3 id="news-wire-heading" className="text-2xl sm:text-3xl font-bold mb-8 italic border-b-2 border-black pb-1 telugu-headline inline-block">తాజా వార్తా ప్రవాహం</h3>
-                <DeepDiveGuides guides={dynamicGuides} onRead={(slug) => setCurrentPage(slug)} />
+                <DeepDiveGuides guides={dynamicGuides} onRead={handleNavigate} />
               </section>
             </article>
 
@@ -222,27 +228,27 @@ const App: React.FC = () => {
           <div>
             <h4 className="text-[11px] font-black uppercase mb-6 utility-font tracking-[0.2em] border-b border-black/20 pb-1">ముఖ్య విభాగాలు</h4>
             <ul className="text-[14px] space-y-3 opacity-90 font-bold">
-              <li><button onClick={() => setCurrentPage('today-gold')} className="hover:underline text-left w-full transition-all hover:translate-x-1">నేటి బంగారం ధరలు</button></li>
-              <li><button onClick={() => setCurrentPage('silver-analysis')} className="hover:underline text-left w-full transition-all hover:translate-x-1">వెండి విశ్లేషణ</button></li>
-              <li><button onClick={() => setCurrentPage('pot-market')} className="hover:underline text-left w-full transition-all hover:translate-x-1">పాట్ మార్కెట్ రిపోర్ట్</button></li>
-              <li><button onClick={() => setCurrentPage('abids-retail')} className="hover:underline text-left w-full transition-all hover:translate-x-1">అబిడ్స్ రిటైల్ అప్డేట్స్</button></li>
-              <li><button onClick={() => setCurrentPage('bis-guide')} className="hover:underline text-left w-full transition-all hover:translate-x-1">BIS హాల్‌మార్క్ గైడ్</button></li>
+              <li><button onClick={() => handleNavigate('today-gold')} className="hover:underline text-left w-full transition-all hover:translate-x-1">నేటి బంగారం ధరలు</button></li>
+              <li><button onClick={() => handleNavigate('silver-analysis')} className="hover:underline text-left w-full transition-all hover:translate-x-1">వెండి విశ్లేషణ</button></li>
+              <li><button onClick={() => handleNavigate('pot-market')} className="hover:underline text-left w-full transition-all hover:translate-x-1">పాట్ మార్కెట్ రిపోర్ట్</button></li>
+              <li><button onClick={() => handleNavigate('abids-retail')} className="hover:underline text-left w-full transition-all hover:translate-x-1">అబిడ్స్ రిటైల్ అప్డేట్స్</button></li>
+              <li><button onClick={() => handleNavigate('bis-guide')} className="hover:underline text-left w-full transition-all hover:translate-x-1">BIS హాల్‌మార్క్ గైడ్</button></li>
             </ul>
           </div>
           <div>
             <h4 className="text-[11px] font-black uppercase mb-6 utility-font tracking-[0.2em] border-b border-black/20 pb-1">సంస్థ సమాచారం</h4>
             <ul className="text-[14px] space-y-3 opacity-90 font-bold">
-              <li><button onClick={() => setCurrentPage('about')} className="hover:underline text-left w-full transition-all hover:translate-x-1">మా గురించి</button></li>
-              <li><button onClick={() => setCurrentPage('contact')} className="hover:underline text-left w-full transition-all hover:translate-x-1">సంప్రదించండి</button></li>
-              <li><button onClick={() => setCurrentPage('editorial-policy')} className="hover:underline text-left w-full transition-all hover:translate-x-1">ఎడిటోరియల్ విధానం</button></li>
+              <li><button onClick={() => handleNavigate('about')} className="hover:underline text-left w-full transition-all hover:translate-x-1">మా గురించి</button></li>
+              <li><button onClick={() => handleNavigate('contact')} className="hover:underline text-left w-full transition-all hover:translate-x-1">సంప్రదించండి</button></li>
+              <li><button onClick={() => handleNavigate('editorial-policy')} className="hover:underline text-left w-full transition-all hover:translate-x-1">ఎడిటోరియల్ విధానం</button></li>
             </ul>
           </div>
           <div>
             <h4 className="text-[11px] font-black uppercase mb-6 utility-font tracking-[0.2em] border-b border-black/20 pb-1">లీగల్</h4>
             <ul className="text-[14px] space-y-3 opacity-90 font-bold">
-              <li><button onClick={() => setCurrentPage('disclaimer')} className="hover:underline text-left w-full transition-all hover:translate-x-1">నిరాకరణ</button></li>
-              <li><button onClick={() => setCurrentPage('privacy')} className="hover:underline text-left w-full transition-all hover:translate-x-1">ప్రైవసీ పాలసీ</button></li>
-              <li><button onClick={() => setCurrentPage('terms')} className="hover:underline text-left w-full transition-all hover:translate-x-1">నిబంధనలు</button></li>
+              <li><button onClick={() => handleNavigate('disclaimer')} className="hover:underline text-left w-full transition-all hover:translate-x-1">నిరాకరణ</button></li>
+              <li><button onClick={() => handleNavigate('privacy')} className="hover:underline text-left w-full transition-all hover:translate-x-1">ప్రైవసీ పాలసీ</button></li>
+              <li><button onClick={() => handleNavigate('terms')} className="hover:underline text-left w-full transition-all hover:translate-x-1">నిబంధనలు</button></li>
               <li><button onClick={() => setShowAuthorPortal(true)} className="text-[#A52A2A] hover:underline font-black mt-4 block">అడ్మిన్ లాగిన్ / ADMIN</button></li>
             </ul>
           </div>

@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PriceData } from '../types';
+import { PriceData } from '../types.ts';
 
 interface PriceDashboardProps {
   prices: PriceData;

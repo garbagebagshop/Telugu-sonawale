@@ -1,8 +1,7 @@
-
 import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { PriceData } from '../types';
-import { COLORS } from '../constants';
+import { PriceData } from '../types.ts';
+import { COLORS } from '../constants.ts';
 
 interface TrendVisualizerProps {
   prices: PriceData;

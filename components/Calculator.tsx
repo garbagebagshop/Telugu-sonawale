@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PriceData } from '../types';
+import { PriceData } from '../types.ts';
 
 interface CalculatorProps {
   prices: PriceData;
