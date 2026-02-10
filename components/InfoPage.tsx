@@ -15,7 +15,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
   const [displayedCount, setDisplayedCount] = useState(4);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const currentGuide = guides.find(g => g.slug === slug);
+  const currentGuide = guides.find((g: Guide) => g.slug === slug);
   const staticPage = PAGE_CONTENT[slug];
 
   const page = useMemo(() => {
@@ -114,10 +114,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
   useEffect(() => {
     if (!isArticle) return;
     const observer = new IntersectionObserver(
-      (entries) => {
+      (entries: IntersectionObserverEntry[]) => {
         if (entries[0].isIntersecting && displayedCount < allRelated.length) {
           setTimeout(() => {
-            setDisplayedCount(prev => prev + 2);
+            setDisplayedCount((prev: number) => prev + 2);
           }, 400);
         }
       },
@@ -141,8 +141,8 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
 
   if (!page) {
     return (
-      <div className="p-8 text-center min-h-[50vh] flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-black mb-4 uppercase utility-font tracking-tighter italic text-black">Dispatch Missing</h2>
+      <div className="p-8 text-center min-h-[50vh] flex flex-col items-center justify-center text-black">
+        <h2 className="text-2xl font-black mb-4 uppercase utility-font tracking-tighter italic">Dispatch Missing</h2>
         <p className="text-sm opacity-50 mb-8 telugu-text">క్షమించండి, ఈ సమాచారం అందుబాటులో లేదు.</p>
         <button onClick={onBack} className="border-2 border-black px-6 py-3 font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">Back to Home</button>
       </div>
@@ -152,10 +152,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
   return (
     <div className="animate-in fade-in duration-500 max-w-4xl mx-auto px-4 py-12" itemScope itemType="https://schema.org/NewsArticle">
       <nav className="mb-8 flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-black px-4 py-2 hover:bg-black hover:text-white transition-all utility-font group">
+        <button onClick={onBack} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-black px-4 py-2 hover:bg-black hover:text-white transition-all utility-font group text-black">
           <span className="group-hover:-translate-x-1 transition-transform">←</span> తిరిగి హోమ్ పేజీకి
         </button>
-        <div className="hidden sm:flex items-center gap-2 text-[8px] font-black uppercase tracking-widest opacity-40 utility-font">
+        <div className="hidden sm:flex items-center gap-2 text-[8px] font-black uppercase tracking-widest opacity-40 utility-font text-black">
           <span className="cursor-pointer hover:underline" onClick={onBack}>Home</span>
           <span>/</span>
           <span className="cursor-pointer hover:underline" onClick={onBack}>Archives</span>
@@ -164,7 +164,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
         </div>
       </nav>
 
-      <article>
+      <article className="text-black">
         <header className="mb-12 relative">
           <div className="flex items-center gap-2 mb-4 text-[#A52A2A] text-[10px] font-black uppercase tracking-widest utility-font">
             <span className="bg-[#A52A2A] text-white px-2 py-0.5 telugu-text font-bold">తాజా సమాచారం</span>
@@ -213,7 +213,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
         </header>
 
         <div 
-          className="telugu-text prose prose-lg md:prose-xl prose-black max-w-none mb-24 drop-cap"
+          className="telugu-text prose prose-lg md:prose-xl prose-black max-w-none mb-24 drop-cap text-black"
           itemProp="articleBody"
           dangerouslySetInnerHTML={{ __html: page.content }}
         />
@@ -221,7 +221,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
 
       {isArticle && allRelated.length > 0 && (
         <section className="mt-32 border-t-[6px] border-black pt-20">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4 border-b-2 border-black pb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4 border-b-2 border-black pb-6 text-black">
             <div>
               <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tight utility-font telugu-text font-bold text-black">మరింత సమాచారం</h3>
               <p className="text-sm font-bold opacity-40 italic mt-1">Recommended market analysis continues below...</p>
@@ -230,14 +230,14 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
-            {displayedRelated.map((article, idx) => (
+            {displayedRelated.map((article: any, idx: number) => (
               <div 
                 key={article.slug}
                 onClick={() => onRead?.(article.slug)}
                 className="cursor-pointer group flex flex-col animate-in fade-in slide-in-from-bottom-8 duration-700"
                 style={{ animationDelay: `${(idx % 2) * 150}ms` }}
               >
-                <div className="aspect-[16/9] overflow-hidden border-2 border-black mb-6 grayscale group-hover:grayscale-0 transition-all duration-700 relative shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-all">
+                <div className="aspect-[16/9] overflow-hidden border-2 border-black mb-6 grayscale group-hover:grayscale-0 transition-all duration-700 relative shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-all bg-white">
                    <img src={article.featuredImage || `https://picsum.photos/seed/${article.slug}/600/338`} alt={article.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                     <button onClick={(e) => { e.stopPropagation(); handleShare('twitter', article.title, article.slug); }} className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><Twitter size={12} strokeWidth={3} /></button>
@@ -246,11 +246,11 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
                 </div>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-[9px] font-black uppercase tracking-widest bg-[#A52A2A] text-white px-2 py-1 utility-font">{article.author.name}</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest opacity-30 utility-font border-l border-black/20 pl-3">{new Date().toLocaleDateString('te-IN', { month: 'short', day: 'numeric' })}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest opacity-30 utility-font border-l border-black/20 pl-3 text-black">{new Date().toLocaleDateString('te-IN', { month: 'short', day: 'numeric' })}</span>
                 </div>
                 <h4 className="font-bold text-2xl leading-tight telugu-headline group-hover:underline mb-3 text-black">{article.title}</h4>
-                <p className="text-base opacity-75 telugu-text line-clamp-3 italic leading-relaxed mb-6">{article.summary}</p>
-                <div className="mt-auto pt-4 border-t border-black/10 flex justify-between items-center group/btn">
+                <p className="text-base opacity-75 telugu-text line-clamp-3 italic leading-relaxed mb-6 text-black">{article.summary}</p>
+                <div className="mt-auto pt-4 border-t border-black/10 flex justify-between items-center group/btn text-black">
                   <span className="text-[11px] font-black uppercase tracking-[0.2em] utility-font group-hover/btn:text-[#A52A2A] transition-colors">పూర్తి కథనం →</span>
                   <div className="w-10 h-0.5 bg-black/10 group-hover/btn:w-20 group-hover/btn:bg-[#A52A2A] transition-all"></div>
                 </div>
@@ -258,7 +258,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
             ))}
           </div>
 
-          <div ref={loadMoreRef} className="py-24 flex flex-col items-center justify-center mt-12 w-full">
+          <div ref={loadMoreRef} className="py-24 flex flex-col items-center justify-center mt-12 w-full text-black">
             {displayedCount < allRelated.length ? (
               <div className="flex flex-col items-center gap-4 animate-bounce">
                 <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin" />

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PriceData } from '../types.ts';
+import { PriceData } from '../types';
 
 interface CalculatorProps {
   prices: PriceData;
@@ -34,7 +34,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ prices }) => {
             type="number" 
             value={weight} 
             onChange={(e) => setWeight(Number(e.target.value))}
-            className="w-full border border-black p-2 text-sm bg-white text-black focus:bg-yellow-50 outline-none"
+            className="w-full border border-black p-2 text-sm bg-white text-black focus:bg-yellow-50 outline-none rounded-none"
           />
         </div>
         

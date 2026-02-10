@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { AUTHORS } from '../constants.ts';
-import { PriceData } from '../types.ts';
-import { SEOPlugin } from './SEOPlugin.tsx';
+import { AUTHORS } from '../constants';
+import { PriceData } from '../types';
+import { SEOPlugin } from './SEOPlugin';
 
 interface AuthorPortalProps {
   onPublish: (article: any) => void;
@@ -178,13 +178,13 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
               <div className="animate-in slide-in-from-bottom-6 duration-300">
                 <h3 className="text-4xl font-black mb-8 border-b-2 border-black pb-3 italic text-center md:text-left">Price Matrix</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  {[['24K Gold', localGold24k, setLocalGold24k], ['22K Gold', localGold22k, setLocalGold22k], ['Silver 1kg', localSilver, setLocalSilver]].map(([label, val, setter], idx) => (
-                    <div key={idx} className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest">{label as string}</label>
+                  {[['24K Gold', localGold24k, setLocalGold24k], ['22K Gold', localGold22k, setLocalGold22k], ['Silver 1kg', localSilver, setLocalSilver]].map(([label, val, setter]: any, idx: number) => (
+                    <div key={idx} className="space-y-2 text-black">
+                      <label className="text-[11px] font-black uppercase tracking-widest">{label}</label>
                       <input 
                         type="number" 
-                        value={val as string} 
-                        onChange={(e) => (setter as any)(e.target.value)} 
+                        value={val} 
+                        onChange={(e) => setter(e.target.value)} 
                         className="w-full border-2 border-black p-4 text-2xl font-black rounded-none bg-white text-black outline-none focus:bg-yellow-50 shadow-inner" 
                       />
                     </div>
