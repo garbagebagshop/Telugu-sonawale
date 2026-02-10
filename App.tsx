@@ -8,7 +8,7 @@ import { AuthorPortal } from './components/AuthorPortal';
 import { InfoPage } from './components/InfoPage';
 import { Calculator } from './components/Calculator';
 import { FAQSection } from './components/FAQSection';
-import { PriceData } from './types';
+import { PriceData, Guide, Author } from './types';
 import { HYDERABAD_MARKET_AVERAGES, AUTHORS, GUIDES as INITIAL_GUIDES, ORG_DETAILS } from './constants';
 
 const App: React.FC = () => {
@@ -22,7 +22,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAuthorPortal, setShowAuthorPortal] = useState(false);
   const [currentPage, setCurrentPage] = useState<string | null>(null);
-  const [dynamicGuides, setDynamicGuides] = useState(INITIAL_GUIDES);
+  const [dynamicGuides, setDynamicGuides] = useState<Guide[]>(INITIAL_GUIDES);
 
   useEffect(() => {
     const savedArticles = localStorage.getItem('sonawale_custom_articles');
@@ -101,7 +101,7 @@ const App: React.FC = () => {
     }
     script.text = JSON.stringify(siteSchema);
 
-    Object.values(AUTHORS).forEach(author => {
+    Object.values(AUTHORS).forEach((author: Author) => {
       const authorId = author.handle.replace('@', '');
       const personSchema = {
         "@context": "https://schema.org",
@@ -127,8 +127,8 @@ const App: React.FC = () => {
     });
 
     return () => {
-      const ids = [scriptId, ...Object.values(AUTHORS).map(a => `author-schema-${a.handle.replace('@', '')}`)];
-      ids.forEach(id => {
+      const ids = [scriptId, ...Object.values(AUTHORS).map((a: Author) => `author-schema-${a.handle.replace('@', '')}`)];
+      ids.forEach((id: string) => {
         const existing = document.getElementById(id);
         if (existing) document.head.removeChild(existing);
       });
@@ -136,7 +136,7 @@ const App: React.FC = () => {
   }, []);
 
   const generateRSS = () => {
-    const items = dynamicGuides.map(g => `
+    const items = dynamicGuides.map((g: Guide) => `
       <item>
         <title>${g.title}</title>
         <link>${ORG_DETAILS.url}/#${g.slug}</link>
@@ -159,10 +159,10 @@ const App: React.FC = () => {
     window.open(url, '_blank');
   };
 
-  const handleNewArticle = (article: any) => {
+  const handleNewArticle = (article: Guide) => {
     const updated = [article, ...dynamicGuides];
     setDynamicGuides(updated);
-    const customOnly = updated.filter(a => !INITIAL_GUIDES.some(ig => ig.slug === a.slug));
+    const customOnly = updated.filter((a: Guide) => !INITIAL_GUIDES.some((ig: Guide) => ig.slug === a.slug));
     localStorage.setItem('sonawale_custom_articles', JSON.stringify(customOnly));
   };
 

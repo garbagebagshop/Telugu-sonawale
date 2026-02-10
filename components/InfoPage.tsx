@@ -11,6 +11,15 @@ interface InfoPageProps {
   onRead?: (slug: string) => void;
 }
 
+interface PageData {
+  title: string;
+  subtitle?: string;
+  content: string;
+  summary: string;
+  author: any;
+  featuredImage: string | null;
+}
+
 export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], onRead }) => {
   const [displayedCount, setDisplayedCount] = useState(4);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -18,7 +27,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
   const currentGuide = guides.find((g: Guide) => g.slug === slug);
   const staticPage = PAGE_CONTENT[slug];
 
-  const page = useMemo(() => {
+  const page = useMemo<PageData | null>(() => {
     if (staticPage) {
       return {
         ...staticPage,
@@ -230,7 +239,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
-            {displayedRelated.map((article: any, idx: number) => (
+            {displayedRelated.map((article: Guide, idx: number) => (
               <div 
                 key={article.slug}
                 onClick={() => onRead?.(article.slug)}

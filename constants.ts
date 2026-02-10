@@ -1,3 +1,5 @@
+import { Author, Guide } from './types';
+
 export const COLORS = {
   INK: '#1A1A1A',
   PAPER: '#FCFBF9',
@@ -10,7 +12,7 @@ export const ORG_DETAILS = {
   name: "Sonawale Daily Bullion Registry",
   url: "https://telugu.sonawale.com",
   logo: "https://picsum.photos/seed/sonawale-logo/400/400",
-  description: "హైదరాబాద్‌లో అత్యంత విశ్వసనీయమైన లైవ్ గోల్డ్ మరియు సిల్వర్ ధరల రిజిస్ట్రీ మరియు మార్కెట్ విశ్లేషణ ప్లాట్‌ఫారమ్.",
+  description: "హైదరాబాద్‌లో అత్యంత విశ్వసనీయమైన లైవ్ గోల్డ్ మరియు వెండి ధరల రిజిస్ట్రీ మరియు మార్కెట్ విశ్లేషణ ప్లాట్‌ఫారమ్.",
   telephone: "+91-8886575507",
   address: {
     streetAddress: "Pot Market, Secunderabad",
@@ -37,7 +39,7 @@ export const HYDERABAD_MARKET_AVERAGES = {
   silver: 92100,
 };
 
-export const AUTHORS = {
+export const AUTHORS: Record<string, Author> = {
   skulkarni: {
     name: "S. Kulkarni",
     role: "Senior Market Correspondent",
@@ -67,7 +69,7 @@ export const AUTHORS = {
   }
 };
 
-export const GUIDES = [
+export const GUIDES: Guide[] = [
   {
     title: "The HUID Mandate: Purity Standards in Hyderabad",
     slug: "bis-hallmarking-guide",

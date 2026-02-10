@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { AUTHORS } from '../constants';
-import { PriceData } from '../types';
+import { PriceData, Guide } from '../types';
 import { SEOPlugin } from './SEOPlugin';
 
 interface AuthorPortalProps {
-  onPublish: (article: any) => void;
+  onPublish: (article: Guide) => void;
   onUpdatePrices: (prices: PriceData) => void;
   currentPrices: PriceData;
   onClose: () => void;
 }
+
+type PriceFieldTuple = [string, string, (val: string) => void];
 
 export const AuthorPortal: React.FC<AuthorPortalProps> = ({ 
   onPublish, 
@@ -84,7 +86,7 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
 
   const handlePublish = () => {
     if (title && content) {
-      const newArticle = {
+      const newArticle: Guide = {
         title,
         summary,
         content,
@@ -102,6 +104,12 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
       alert('Article broadcasted to public feed.');
     }
   };
+
+  const priceFields: PriceFieldTuple[] = [
+    ['24K Gold', localGold24k, setLocalGold24k],
+    ['22K Gold', localGold22k, setLocalGold22k],
+    ['Silver 1kg', localSilver, setLocalSilver]
+  ];
 
   if (!isLoggedIn) {
     return (
@@ -178,7 +186,7 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
               <div className="animate-in slide-in-from-bottom-6 duration-300">
                 <h3 className="text-4xl font-black mb-8 border-b-2 border-black pb-3 italic text-center md:text-left">Price Matrix</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  {[['24K Gold', localGold24k, setLocalGold24k], ['22K Gold', localGold22k, setLocalGold22k], ['Silver 1kg', localSilver, setLocalSilver]].map(([label, val, setter]: any, idx: number) => (
+                  {priceFields.map(([label, val, setter]: PriceFieldTuple, idx: number) => (
                     <div key={idx} className="space-y-2 text-black">
                       <label className="text-[11px] font-black uppercase tracking-widest">{label}</label>
                       <input 
