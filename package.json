@@ -1,3 +1,4 @@
+
 {
   "name": "sonawale-hyderabad-bullion",
   "private": true,
@@ -12,7 +13,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^2.15.0",
-    "lucide-react": "^0.473.0"
+    "lucide-react": "^0.473.0",
+    "@tailwindcss/typography": "^0.5.16"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
