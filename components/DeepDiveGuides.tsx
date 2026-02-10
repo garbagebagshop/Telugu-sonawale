@@ -1,8 +1,9 @@
 import React from 'react';
 import { Twitter, Facebook } from 'lucide-react';
+import { Guide } from '../types';
 
 interface DeepDiveGuidesProps {
-  guides: any[];
+  guides: Guide[];
   onRead: (slug: string) => void;
 }
 

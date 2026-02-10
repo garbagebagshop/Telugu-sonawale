@@ -2,11 +2,12 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { PAGE_CONTENT } from '../constants/pageContent';
 import { ORG_DETAILS } from '../constants';
 import { Twitter, Facebook } from 'lucide-react';
+import { Guide } from '../types';
 
 interface InfoPageProps {
   slug: string;
   onBack: () => void;
-  guides?: any[];
+  guides?: Guide[];
   onRead?: (slug: string) => void;
 }
 
@@ -21,7 +22,9 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
     if (staticPage) {
       return {
         ...staticPage,
-        featuredImage: (staticPage as any).featuredImage || null
+        featuredImage: (staticPage as any).featuredImage || null,
+        author: null,
+        summary: staticPage.title
       };
     }
     if (currentGuide) {
@@ -44,7 +47,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
 
     document.title = `${page.title} | Sonawale Hyderabad`;
     const metaDesc = document.querySelector('meta[name="description"]');
-    const summaryText = (page as any).summary || page.title;
+    const summaryText = page.summary || page.title;
     if (metaDesc) metaDesc.setAttribute('content', summaryText);
 
     const schemaId = 'dynamic-article-schema';
@@ -64,13 +67,13 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
       "image": [page.featuredImage || ORG_DETAILS.logo],
       "datePublished": new Date().toISOString(), 
       "dateModified": new Date().toISOString(),
-      "author": isArticle ? {
+      "author": (isArticle && page.author) ? {
         "@type": "Person",
-        "@id": `${ORG_DETAILS.url}/#author-${(page as any).author.handle.replace('@','')}`,
-        "name": (page as any).author.name,
-        "jobTitle": (page as any).author.jobTitle || (page as any).author.role,
-        "url": `${ORG_DETAILS.url}/#author-${(page as any).author.handle.replace('@','')}`,
-        "sameAs": (page as any).author.sameAs || []
+        "@id": `${ORG_DETAILS.url}/#author-${page.author.handle.replace('@','')}`,
+        "name": page.author.name,
+        "jobTitle": page.author.jobTitle || page.author.role,
+        "url": `${ORG_DETAILS.url}/#author-${page.author.handle.replace('@','')}`,
+        "sameAs": page.author.sameAs || []
       } : {
         "@id": `${ORG_DETAILS.url}/#organization`
       },
@@ -97,10 +100,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
     if (!isArticle || !currentGuide) return [];
     const currentKeywords = currentGuide.title.toLowerCase().split(' ');
     return guides
-      .filter(g => g.slug !== slug)
-      .map(g => {
+      .filter((g: Guide) => g.slug !== slug)
+      .map((g: Guide) => {
         const targetKeywords = g.title.toLowerCase().split(' ');
-        const score = targetKeywords.filter(k => k.length > 3 && currentKeywords.includes(k)).length;
+        const score = targetKeywords.filter((k: string) => k.length > 3 && currentKeywords.includes(k)).length;
         return { ...g, score };
       })
       .sort((a, b) => b.score - a.score);
