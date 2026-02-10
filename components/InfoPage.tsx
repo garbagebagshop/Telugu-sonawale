@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
-import { PAGE_CONTENT } from '../constants/pageContent.ts';
-import { ORG_DETAILS } from '../constants.ts';
+import { PAGE_CONTENT } from '../constants/pageContent';
+import { ORG_DETAILS } from '../constants';
 import { Twitter, Facebook } from 'lucide-react';
 
 interface InfoPageProps {
@@ -14,7 +14,6 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
   const [displayedCount, setDisplayedCount] = useState(4);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Resolution logic for content
   const currentGuide = guides.find(g => g.slug === slug);
   const staticPage = PAGE_CONTENT[slug];
 
@@ -40,11 +39,9 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
 
   const isArticle = !!currentGuide;
 
-  // SEO & Schema Injection for Article/Person
   useEffect(() => {
     if (!page) return;
 
-    // Update Meta
     document.title = `${page.title} | Sonawale Hyderabad`;
     const metaDesc = document.querySelector('meta[name="description"]');
     const summaryText = (page as any).summary || page.title;
@@ -96,7 +93,6 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
     };
   }, [page, slug, isArticle]);
 
-  // Infinite Scroll Related Items Logic
   const allRelated = useMemo(() => {
     if (!isArticle || !currentGuide) return [];
     const currentKeywords = currentGuide.title.toLowerCase().split(' ');
@@ -186,7 +182,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
               </p>
             )}
             <div className="flex items-center gap-4 border-l-0 md:border-l md:border-black/20 md:pl-6">
-              <span className="text-[10px] font-black uppercase tracking-widest utility-font opacity-40 whitespace-nowrap">Broadcast:</span>
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">Broadcast:</span>
               <div className="flex gap-4">
                 <button onClick={() => handleShare('twitter', page.title, slug)} className="hover:text-[#1DA1F2] transition-colors"><Twitter size={16} strokeWidth={2.5} /></button>
                 <button onClick={() => handleShare('facebook', page.title, slug)} className="hover:text-[#1877F2] transition-colors"><Facebook size={16} strokeWidth={2.5} /></button>

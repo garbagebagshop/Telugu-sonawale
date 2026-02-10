@@ -1,16 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { PriceTicker } from './components/PriceTicker.tsx';
-import { PriceDashboard } from './components/PriceDashboard.tsx';
-import { TrendVisualizer } from './components/TrendVisualizer.tsx';
-import { DeepDiveGuides } from './components/DeepDiveGuides.tsx';
-import { AuthorProfile } from './components/AuthorProfile.tsx';
-import { AuthorPortal } from './components/AuthorPortal.tsx';
-import { InfoPage } from './components/InfoPage.tsx';
-import { Calculator } from './components/Calculator.tsx';
-import { FAQSection } from './components/FAQSection.tsx';
-import { PriceData } from './types.ts';
-import { HYDERABAD_MARKET_AVERAGES, AUTHORS, GUIDES as INITIAL_GUIDES, ORG_DETAILS } from './constants.ts';
+import { PriceTicker } from './components/PriceTicker';
+import { PriceDashboard } from './components/PriceDashboard';
+import { TrendVisualizer } from './components/TrendVisualizer';
+import { DeepDiveGuides } from './components/DeepDiveGuides';
+import { AuthorProfile } from './components/AuthorProfile';
+import { AuthorPortal } from './components/AuthorPortal';
+import { InfoPage } from './components/InfoPage';
+import { Calculator } from './components/Calculator';
+import { FAQSection } from './components/FAQSection';
+import { PriceData } from './types';
+import { HYDERABAD_MARKET_AVERAGES, AUTHORS, GUIDES as INITIAL_GUIDES, ORG_DETAILS } from './constants';
 
 const App: React.FC = () => {
   const [prices, setPrices] = useState<PriceData>({
@@ -38,7 +37,6 @@ const App: React.FC = () => {
     }
     setLoading(false);
     
-    // Inject Multi-Entity Global Schema (Organization, LocalBusiness, WebSite)
     const siteSchema = [
       {
         "@context": "https://schema.org",
@@ -93,13 +91,16 @@ const App: React.FC = () => {
       }
     ];
 
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.id = 'generic-site-schema';
+    const scriptId = 'generic-site-schema';
+    let script = document.getElementById(scriptId) as HTMLScriptElement;
+    if (!script) {
+      script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = scriptId;
+      document.head.appendChild(script);
+    }
     script.text = JSON.stringify(siteSchema);
-    document.head.appendChild(script);
 
-    // Person Schemas for Authors
     Object.values(AUTHORS).forEach(author => {
       const authorId = author.handle.replace('@', '');
       const personSchema = {
@@ -114,15 +115,19 @@ const App: React.FC = () => {
         "sameAs": author.sameAs || [],
         "worksFor": { "@id": `${ORG_DETAILS.url}/#organization` }
       };
-      const personScript = document.createElement('script');
-      personScript.type = 'application/ld+json';
-      personScript.id = `author-schema-${authorId}`;
+      const personScriptId = `author-schema-${authorId}`;
+      let personScript = document.getElementById(personScriptId) as HTMLScriptElement;
+      if (!personScript) {
+        personScript = document.createElement('script');
+        personScript.type = 'application/ld+json';
+        personScript.id = personScriptId;
+        document.head.appendChild(personScript);
+      }
       personScript.text = JSON.stringify(personSchema);
-      document.head.appendChild(personScript);
     });
 
     return () => {
-      const ids = ['generic-site-schema', ...Object.values(AUTHORS).map(a => `author-schema-${a.handle.replace('@', '')}`)];
+      const ids = [scriptId, ...Object.values(AUTHORS).map(a => `author-schema-${a.handle.replace('@', '')}`)];
       ids.forEach(id => {
         const existing = document.getElementById(id);
         if (existing) document.head.removeChild(existing);
@@ -184,7 +189,6 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Breaking Bar */}
       <div role="alert" className="bg-[#A52A2A] text-white py-1.5 px-4 text-[10px] font-black uppercase tracking-[0.2em] flex justify-between items-center utility-font shadow-inner">
         <span className="telugu-text font-bold truncate pr-4 text-[11px]">ముఖ్య వార్తలు: హైదరాబాద్ బులియన్ మార్కెట్‌లో ధరల స్థిరీకరణ</span>
         <span className="hidden sm:inline shrink-0 whitespace-nowrap">Flash • {prices.lastUpdated}</span>
@@ -253,7 +257,6 @@ const App: React.FC = () => {
                 <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-1">
                   <h3 id="news-wire-heading" className="text-2xl sm:text-3xl font-bold italic telugu-headline inline-block text-black">తాజా వార్తా ప్రవాహం</h3>
                   <button onClick={generateRSS} title="Subscribe to RSS" className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:text-[#A52A2A] text-black">
-                    {/* Removed 'size' prop as it is not a valid SVG attribute in standard React JSX */}
                     <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M6.503 20.752c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm15.497 2.001c0-10.493-8.507-19-19-19v3.018c8.828 0 15.982 7.155 15.982 15.982h3.018zm-7.986 0c0-6.082-4.919-11.001-11.014-11.001v3.018c4.411 0 7.996 3.585 7.996 7.983h3.018z"/></svg>
                     RSS Feed
                   </button>
