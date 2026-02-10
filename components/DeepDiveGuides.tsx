@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Facebook, Share2 } from 'lucide-react';
+import { Twitter, Facebook } from 'lucide-react';
 
 interface DeepDiveGuidesProps {
   guides: any[];
@@ -36,7 +36,7 @@ export const DeepDiveGuides: React.FC<DeepDiveGuidesProps> = ({ guides, onRead }
           itemScope 
           itemType="https://schema.org/NewsArticle"
         >
-          <meta itemProp="mainEntityOfPage" content={`https://sonawale.com/#${guide.slug}`} />
+          <meta itemProp="mainEntityOfPage" content={`${window.location.origin}/#${guide.slug}`} />
           <div className="md:w-1/4 grayscale hover:grayscale-0 transition-all duration-700 overflow-hidden border border-black/10 aspect-[16/10] md:aspect-square">
             <img 
               src={guide.featuredImage || `https://picsum.photos/seed/${guide.slug}/300/300`} 
@@ -48,7 +48,7 @@ export const DeepDiveGuides: React.FC<DeepDiveGuidesProps> = ({ guides, onRead }
           </div>
           <div className="md:w-3/4 flex flex-col">
             <div className="text-[8px] font-black uppercase tracking-[0.2em] text-[#A52A2A] mb-1 utility-font">
-              Report • <time dateTime={new Date().toISOString()}>{new Date().toLocaleDateString('te-IN', { day: '2-digit', month: 'short' })}</time>
+              Report • <time dateTime={new Date().toISOString()} itemProp="datePublished">{new Date().toLocaleDateString('te-IN', { day: '2-digit', month: 'short' })}</time>
             </div>
             <h3 className="text-xl font-bold leading-tight mb-1 group-hover:underline telugu-headline" itemProp="headline">
               {guide.title}
@@ -88,13 +88,6 @@ export const DeepDiveGuides: React.FC<DeepDiveGuidesProps> = ({ guides, onRead }
                     title="Share on Facebook"
                   >
                     <Facebook size={12} strokeWidth={3} />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleShare('whatsapp', guide.title, guide.slug); }}
-                    className="p-1 hover:text-[#25D366] transition-colors"
-                    title="Share on WhatsApp"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-whatsapp"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.8 8.5 8.5 0 0 1 5.3 1.4L22 3Z"/><path d="M17 10c-.2-.4-.5-.8-1-1.1s-1.1-.3-1.6-.1c-.4.2-.8.5-1.1 1-.2.3-.4.6-.7.8-.3.3-.6.5-1 .6-.3.1-.7.1-1-.1s-.6-.4-.8-.7c-.2-.3-.5-.5-.8-.7s-.7-.3-1-.2c-.4.1-.7.4-1 .7-.2.3-.3.7-.3 1.1s.1.8.4 1.1c.3.3.6.5 1 .6.3.1.7.1 1-.1.3-.2.6-.5.8-.8.3-.3.6-.5 1-.6.3-.1.7-.1 1 .1s.6.4.8.7c.2.3.5.5.8.7s.7.3 1 .2c.4-.1.7-.4 1-.7.2-.3.3-.7.3-1.1z"/></svg>
                   </button>
                 </div>
               </div>
