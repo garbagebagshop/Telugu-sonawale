@@ -24,10 +24,10 @@ export const convertToWebP = (file: File): Promise<Blob> => {
           else reject(new Error('WebP conversion failed'));
         }, 'image/webp', 0.8); // 80% quality for optimal balance
       };
-      img.onerror = () => reject(new Error('Image loading failed'));
+      img.onerror = () => reject(new Error('Image processing failed - check file format.'));
       img.src = e.target?.result as string;
     };
-    reader.onerror = () => reject(new Error('File reading failed'));
+    reader.onerror = () => reject(new Error('File reading failed.'));
     reader.readAsDataURL(file);
   });
 };
@@ -40,16 +40,22 @@ export const uploadToR2 = async (data: Blob | File, slug: string): Promise<strin
   const uploadUrl = `${R2_CONFIG.endpoint}/${fileName}`;
 
   try {
+    console.log(`Initiating PUT to: ${uploadUrl}`);
     const response = await fetch(uploadUrl, {
       method: 'PUT',
       body: data,
       headers: {
         'Content-Type': 'image/webp',
       },
+      // Note: Direct browser PUT to R2 requires a specific CORS policy or Pre-signed URLs.
+      // If this fails with 401/403, it's a configuration issue on Cloudflare side.
     });
 
     if (!response.ok) {
-      throw new Error(`R2 Upload Failed: ${response.statusText}`);
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("R2 Storage Access Denied: This operation requires a signed URL or public-write access (insecure).");
+      }
+      throw new Error(`R2 Upload Failed: ${response.status} ${response.statusText}`);
     }
 
     return `${R2_CONFIG.publicUrl}/${fileName}`;

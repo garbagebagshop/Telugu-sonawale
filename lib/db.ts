@@ -49,17 +49,22 @@ export const initDb = async () => {
 export const fetchArticles = async (): Promise<Guide[]> => {
   try {
     const result = await client.execute("SELECT * FROM articles ORDER BY date DESC");
-    return result.rows.map((row: any) => ({
-      title: row.title,
-      slug: row.slug,
-      summary: row.summary,
-      content: row.content,
-      author: AUTHORS[row.author_handle.replace('@', '')] || AUTHORS.skulkarni,
-      featuredImage: row.featured_image,
-      imageAlt: row.image_alt,
-      date: row.date,
-      focusKeywords: row.focus_keywords
-    }));
+    return result.rows.map((row: any) => {
+      // Find author by matching the full handle (e.g., @sk_bullion_hyd)
+      const author = Object.values(AUTHORS).find(a => a.handle === row.author_handle) || AUTHORS.skulkarni;
+      
+      return {
+        title: row.title,
+        slug: row.slug,
+        summary: row.summary,
+        content: row.content,
+        author: author,
+        featuredImage: row.featured_image,
+        imageAlt: row.image_alt,
+        date: row.date,
+        focusKeywords: row.focus_keywords
+      };
+    });
   } catch (error) {
     console.error("Failed to fetch articles:", error);
     return [];
@@ -86,7 +91,7 @@ export const saveArticleToDb = async (article: Guide) => {
     return true;
   } catch (error) {
     console.error("Failed to save article to Turso:", error);
-    throw error;
+    throw new Error(`Database Error: ${error instanceof Error ? error.message : 'Storage failed'}`);
   }
 };
 
