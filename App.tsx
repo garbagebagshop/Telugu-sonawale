@@ -11,7 +11,7 @@ import { Calculator } from './components/Calculator';
 import { FAQSection } from './components/FAQSection';
 import { PriceData, Guide } from './types';
 import { HYDERABAD_MARKET_AVERAGES, AUTHORS, GUIDES as INITIAL_GUIDES, ORG_DETAILS } from './constants';
-import { initDb, fetchArticles } from './lib/db';
+import { initDb, fetchArticles, fetchLatestPrices, savePriceUpdate, fetchPriceHistory } from './lib/db';
 import { generateRssFeed } from './lib/rss';
 import { generateSitemap } from './lib/sitemap';
 
@@ -23,6 +23,7 @@ const App: React.FC = () => {
     lastUpdated: new Date().toLocaleTimeString('te-IN'),
   });
 
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAuthorPortal, setShowAuthorPortal] = useState(false);
   const [currentPage, setCurrentPage] = useState<string | null>(null);
@@ -53,23 +54,40 @@ const App: React.FC = () => {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Initial check
+    handleHashChange();
 
     const loadData = async () => {
+      setLoading(true);
       await initDb();
-      const dbArticles = await fetchArticles();
-      const savedPrices = localStorage.getItem('sonawale_current_prices');
+      
+      const [dbArticles, latestPrices, history] = await Promise.all([
+        fetchArticles(),
+        fetchLatestPrices(),
+        fetchPriceHistory(7)
+      ]);
       
       setDynamicGuides([...dbArticles, ...INITIAL_GUIDES]);
-      if (savedPrices) {
-        setPrices(JSON.parse(savedPrices));
+      
+      if (latestPrices) {
+        setPrices(latestPrices);
       }
+      
+      if (history.length > 0) {
+        setPriceHistory(history);
+      } else {
+        // Fallback for empty DB
+        const mockHistory = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => ({
+          time: day,
+          price: (latestPrices?.gold24k || HYDERABAD_MARKET_AVERAGES.gold24k) - (100 * (6 - i))
+        }));
+        setPriceHistory(mockHistory);
+      }
+      
       setLoading(false);
     };
 
     loadData();
     
-    // Inject global SEO schemas
     const siteSchemaId = 'generic-site-schema';
     if (!document.getElementById(siteSchemaId)) {
       const siteSchema = [
@@ -103,6 +121,27 @@ const App: React.FC = () => {
 
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  const handleUpdatePrices = async (newPrices: PriceData) => {
+    try {
+      await savePriceUpdate({
+        gold24k: newPrices.gold24k,
+        gold22k: newPrices.gold22k,
+        silver: newPrices.silver
+      });
+      
+      setPrices(newPrices);
+      
+      // Refresh history to include new point
+      const history = await fetchPriceHistory(7);
+      setPriceHistory(history);
+      
+      localStorage.setItem('sonawale_current_prices', JSON.stringify(newPrices));
+    } catch (err) {
+      console.error("Failed to sync prices to DB:", err);
+      alert("Error updating live feed. Please check connection.");
+    }
+  };
 
   const handleNavigate = (slug: string) => {
     window.location.hash = slug;
@@ -145,7 +184,7 @@ const App: React.FC = () => {
       {showAuthorPortal && (
         <AuthorPortal 
           onPublish={(art) => setDynamicGuides([art, ...dynamicGuides])} 
-          onUpdatePrices={(p) => { setPrices(p); localStorage.setItem('sonawale_current_prices', JSON.stringify(p)); }}
+          onUpdatePrices={handleUpdatePrices}
           currentPrices={prices}
           onClose={() => setShowAuthorPortal(false)} 
         />
@@ -227,7 +266,7 @@ const App: React.FC = () => {
                 <section className="bg-white/50 border border-black p-5 shadow-sm">
                   <h3 className="text-xl font-bold italic mb-5 telugu-headline border-b border-black/10 pb-1">ధరల గమనం (7 రోజులు)</h3>
                   <div className="h-[200px]">
-                    <TrendVisualizer prices={prices} />
+                    <TrendVisualizer history={priceHistory} />
                   </div>
                 </section>
 

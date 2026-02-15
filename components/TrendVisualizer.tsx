@@ -1,37 +1,24 @@
-import React, { useMemo } from 'react';
+
+import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { PriceData } from '../types';
-import { COLORS } from '../constants';
 
 interface TrendVisualizerProps {
-  prices: PriceData;
+  history: Array<{ time: string; price: number; fullDate?: string }>;
 }
 
-export const TrendVisualizer: React.FC<TrendVisualizerProps> = ({ prices }) => {
-  const data = useMemo(() => {
-    const points = [];
-    const base = prices.gold24k;
-    for (let i = 0; i < 7; i++) {
-      points.push({
-        day: ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i],
-        price: Math.round(base - (3 - i) * 150 + (Math.random() - 0.5) * 100),
-      });
-    }
-    return points;
-  }, [prices.gold24k]);
-
+export const TrendVisualizer: React.FC<TrendVisualizerProps> = ({ history }) => {
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
+        <AreaChart data={history}>
           <CartesianGrid strokeDasharray="1 4" vertical={false} stroke="#ccc" />
           <XAxis 
-            dataKey="day" 
+            dataKey="time" 
             axisLine={{ stroke: '#000', strokeWidth: 1 }} 
             tickLine={false} 
             tick={{ fontSize: 10, fontWeight: 'bold', fill: '#000' }} 
           />
-          <YAxis hide domain={['dataMin - 500', 'dataMax + 500']} />
+          <YAxis hide domain={['dataMin - 1000', 'dataMax + 1000']} />
           <Tooltip 
             cursor={{ stroke: '#000', strokeWidth: 1 }}
             contentStyle={{ 
@@ -41,14 +28,16 @@ export const TrendVisualizer: React.FC<TrendVisualizerProps> = ({ prices }) => {
               border: 'none',
               borderRadius: '0'
             }} 
+            formatter={(value: number) => [`₹${value.toLocaleString()}`, '24K Gold']}
           />
           <Area 
-            type="stepAfter" 
+            type="monotone" 
             dataKey="price" 
             stroke="#000" 
             strokeWidth={2}
             fill="#eee" 
             fillOpacity={0.8}
+            animationDuration={1500}
           />
         </AreaChart>
       </ResponsiveContainer>

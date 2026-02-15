@@ -5,8 +5,7 @@ import { PriceData, Guide } from '../types';
 import { SEOPlugin } from './SEOPlugin';
 import { saveArticleToDb } from '../lib/db';
 import { uploadToR2, convertToWebP } from '../lib/storage';
-import { generateRssFeed } from '../lib/rss';
-import { ChevronUp, ChevronDown, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface AuthorPortalProps {
   onPublish: (article: Guide) => void;
@@ -28,8 +27,8 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
   const [password, setPassword] = useState('');
   const [view, setView] = useState<'dashboard' | 'editor' | 'prices'>('dashboard');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingPrices, setIsUpdatingPrices] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
-  const [showSeoDetails, setShowSeoDetails] = useState(false);
   
   const ADMIN_ID = "8886575507";
   const ADMIN_PASS = "Harsh@123";
@@ -63,14 +62,19 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
     }
   };
 
-  const handlePriceUpdate = () => {
-    onUpdatePrices({
-      gold24k: parseInt(localGold24k),
-      gold22k: parseInt(localGold22k),
-      silver: parseInt(localSilver),
-      lastUpdated: new Date().toLocaleTimeString('te-IN')
-    });
-    alert("Live Market Prices Updated.");
+  const handlePriceUpdate = async () => {
+    setIsUpdatingPrices(true);
+    try {
+      await onUpdatePrices({
+        gold24k: parseInt(localGold24k),
+        gold22k: parseInt(localGold22k),
+        silver: parseInt(localSilver),
+        lastUpdated: new Date().toLocaleTimeString('te-IN')
+      });
+      alert("Live Market Prices Commited to Turso DB.");
+    } finally {
+      setIsUpdatingPrices(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +129,6 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
         await saveArticleToDb(newArticle);
         onPublish(newArticle);
         setView('dashboard');
-        // Reset
         setTitle(''); setSummary(''); setContent(''); setFocusKeywords(''); setFeaturedImage(null);
       } catch (err) {
         console.error(err);
@@ -173,11 +176,26 @@ export const AuthorPortal: React.FC<AuthorPortalProps> = ({
             <div className="bg-white border-2 border-black p-6 md:p-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <h3 className="text-2xl font-black mb-6 italic">Price Registry Update</h3>
               <div className="space-y-6 mb-8">
-                <input type="number" value={localGold24k} onChange={e => setLocalGold24k(e.target.value)} className="w-full border-2 border-black p-4 text-xl font-black" placeholder="24K Price" />
-                <input type="number" value={localGold22k} onChange={e => setLocalGold22k(e.target.value)} className="w-full border-2 border-black p-4 text-xl font-black" placeholder="22K Price" />
-                <input type="number" value={localSilver} onChange={e => setLocalSilver(e.target.value)} className="w-full border-2 border-black p-4 text-xl font-black" placeholder="Silver Price" />
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40 mb-1 block">Gold 24K (Per 10g)</label>
+                  <input type="number" value={localGold24k} onChange={e => setLocalGold24k(e.target.value)} className="w-full border-2 border-black p-4 text-xl font-black" placeholder="24K Price" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40 mb-1 block">Gold 22K (Per 10g)</label>
+                  <input type="number" value={localGold22k} onChange={e => setLocalGold22k(e.target.value)} className="w-full border-2 border-black p-4 text-xl font-black" placeholder="22K Price" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase opacity-40 mb-1 block">Silver (Per 1kg)</label>
+                  <input type="number" value={localSilver} onChange={e => setLocalSilver(e.target.value)} className="w-full border-2 border-black p-4 text-xl font-black" placeholder="Silver Price" />
+                </div>
               </div>
-              <button onClick={handlePriceUpdate} className="bg-black text-white px-8 py-5 font-black uppercase tracking-widest w-full">Commit to Live Feed</button>
+              <button 
+                onClick={handlePriceUpdate} 
+                disabled={isUpdatingPrices}
+                className="bg-black text-white px-8 py-5 font-black uppercase tracking-widest w-full flex items-center justify-center gap-2"
+              >
+                {isUpdatingPrices ? <><Loader2 className="animate-spin" size={18} /> Syncing Registry...</> : "Commit to Live Feed"}
+              </button>
             </div>
           )}
 

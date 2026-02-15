@@ -1,6 +1,6 @@
 
 import { createClient } from '@libsql/client/web';
-import { Guide } from '../types';
+import { Guide, PriceData } from '../types';
 import { AUTHORS } from '../constants';
 
 const url = "https://telugu-sonwale-vercel-icfg-fctpkxnw9kfbyxywrghysj9s.aws-ap-south-1.turso.io";
@@ -13,6 +13,7 @@ export const client = createClient({
 
 export const initDb = async () => {
   try {
+    // Articles Table
     await client.execute(`
       CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,14 +28,17 @@ export const initDb = async () => {
         focus_keywords TEXT
       );
     `);
-    
-    // Migrations for existing tables
-    try {
-      await client.execute("ALTER TABLE articles ADD COLUMN image_alt TEXT;");
-    } catch (e) {}
-    try {
-      await client.execute("ALTER TABLE articles ADD COLUMN focus_keywords TEXT;");
-    } catch (e) {}
+
+    // Price History Table
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS price_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        gold24k INTEGER NOT NULL,
+        gold22k INTEGER NOT NULL,
+        silver INTEGER NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
     
     console.log("Database initialized successfully.");
   } catch (error) {
@@ -82,6 +86,50 @@ export const saveArticleToDb = async (article: Guide) => {
     return true;
   } catch (error) {
     console.error("Failed to save article to Turso:", error);
+    throw error;
+  }
+};
+
+export const fetchLatestPrices = async (): Promise<PriceData | null> => {
+  try {
+    const result = await client.execute("SELECT * FROM price_history ORDER BY timestamp DESC LIMIT 1");
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0];
+    return {
+      gold24k: Number(row.gold24k),
+      gold22k: Number(row.gold22k),
+      silver: Number(row.silver),
+      lastUpdated: new Date(row.timestamp as string).toLocaleTimeString('te-IN')
+    };
+  } catch (error) {
+    console.error("Failed to fetch latest prices:", error);
+    return null;
+  }
+};
+
+export const fetchPriceHistory = async (limit = 7) => {
+  try {
+    const result = await client.execute(`SELECT * FROM price_history ORDER BY timestamp DESC LIMIT ${limit}`);
+    return result.rows.reverse().map((row: any) => ({
+      time: new Date(row.timestamp).toLocaleDateString('te-IN', { weekday: 'short' }),
+      price: Number(row.gold24k),
+      fullDate: row.timestamp
+    }));
+  } catch (error) {
+    console.error("Failed to fetch price history:", error);
+    return [];
+  }
+};
+
+export const savePriceUpdate = async (prices: Omit<PriceData, 'lastUpdated'>) => {
+  try {
+    await client.execute({
+      sql: `INSERT INTO price_history (gold24k, gold22k, silver) VALUES (?, ?, ?)`,
+      args: [prices.gold24k, prices.gold22k, prices.silver]
+    });
+    return true;
+  } catch (error) {
+    console.error("Failed to save price update:", error);
     throw error;
   }
 };
