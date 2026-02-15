@@ -16,7 +16,10 @@ export interface Guide {
   content: string;
   author: Author;
   featuredImage?: string;
+  imageAlt?: string;
   date?: string;
+  focusKeywords?: string;
+  category?: string; // e.g., "Market Trends", "Hallmarking", "Investment"
 }
 
 export interface PriceData {

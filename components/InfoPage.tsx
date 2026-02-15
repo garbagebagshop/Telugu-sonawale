@@ -1,8 +1,9 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { PAGE_CONTENT } from '../constants/pageContent';
 import { ORG_DETAILS } from '../constants';
-import { Twitter, Facebook } from 'lucide-react';
+import { Twitter, Facebook, Share2, ArrowRight, Loader2 } from 'lucide-react';
 import { Guide } from '../types';
+import { Breadcrumbs } from './Breadcrumbs';
 
 interface InfoPageProps {
   slug: string;
@@ -18,10 +19,17 @@ interface PageData {
   summary: string;
   author: any;
   featuredImage: string | null;
+  imageAlt?: string;
+  category?: string;
+}
+
+interface RelatedArticle extends Guide {
+  score: number;
 }
 
 export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], onRead }) => {
-  const [displayedCount, setDisplayedCount] = useState(4);
+  const [displayedCount, setDisplayedCount] = useState(6);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const currentGuide = guides.find((g: Guide) => g.slug === slug);
@@ -32,8 +40,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
       return {
         ...staticPage,
         featuredImage: (staticPage as any).featuredImage || null,
+        imageAlt: staticPage.title,
         author: null,
-        summary: staticPage.title
+        summary: staticPage.title,
+        category: "Information"
       };
     }
     if (currentGuide) {
@@ -43,7 +53,9 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
         content: currentGuide.content,
         summary: currentGuide.summary,
         author: currentGuide.author,
-        featuredImage: currentGuide.featuredImage || `https://picsum.photos/seed/${currentGuide.slug}/1200/675`
+        featuredImage: currentGuide.featuredImage || `https://picsum.photos/seed/${currentGuide.slug}/1200/675`,
+        imageAlt: currentGuide.imageAlt || currentGuide.title,
+        category: currentGuide.category || "Market Analysis"
       };
     }
     return null;
@@ -53,13 +65,20 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
 
   useEffect(() => {
     if (!page) return;
-
-    document.title = `${page.title} | Sonawale Hyderabad`;
+    
+    // SEO: Browser Metadata
+    document.title = `${page.title} | సోనావాలే హైదరాబాద్`;
+    
     const metaDesc = document.querySelector('meta[name="description"]');
-    const summaryText = page.summary || page.title;
-    if (metaDesc) metaDesc.setAttribute('content', summaryText);
+    if (metaDesc) metaDesc.setAttribute('content', page.summary || page.title);
 
-    const schemaId = 'dynamic-article-schema';
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords && currentGuide?.focusKeywords) {
+      metaKeywords.setAttribute('content', currentGuide.focusKeywords);
+    }
+
+    // Schema Management
+    const schemaId = 'dynamic-seo-schema';
     let script = document.getElementById(schemaId) as HTMLScriptElement;
     if (!script) {
       script = document.createElement('script');
@@ -68,77 +87,107 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
       document.head.appendChild(script);
     }
 
-    const newsSchema = {
+    const datePublished = currentGuide?.date || new Date().toISOString();
+    const canonicalUrl = `${ORG_DETAILS.url}/#${slug}`;
+
+    const primarySchema: any = {
       "@context": "https://schema.org",
       "@type": isArticle ? "NewsArticle" : "WebPage",
       "@id": `${ORG_DETAILS.url}/#article-${slug}`,
-      "headline": page.title,
-      "image": [page.featuredImage || ORG_DETAILS.logo],
-      "datePublished": new Date().toISOString(), 
-      "dateModified": new Date().toISOString(),
-      "author": (isArticle && page.author) ? {
-        "@type": "Person",
-        "@id": `${ORG_DETAILS.url}/#author-${page.author.handle.replace('@','')}`,
-        "name": page.author.name,
-        "jobTitle": page.author.jobTitle || page.author.role,
-        "url": `${ORG_DETAILS.url}/#author-${page.author.handle.replace('@','')}`,
-        "sameAs": page.author.sameAs || []
-      } : {
-        "@id": `${ORG_DETAILS.url}/#organization`
-      },
-      "publisher": {
-        "@id": `${ORG_DETAILS.url}/#organization`
-      },
-      "description": summaryText,
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `${ORG_DETAILS.url}/#${slug}`
+        "@id": canonicalUrl
       },
-      "isAccessibleForFree": "True",
+      "headline": page.title,
+      "description": page.summary,
+      "image": {
+        "@type": "ImageObject",
+        "url": page.featuredImage || ORG_DETAILS.logo,
+        "width": 1200,
+        "height": 675
+      },
+      "datePublished": datePublished,
+      "dateModified": datePublished,
+      "author": (isArticle && page.author) ? {
+        "@type": "Person",
+        "name": page.author.name,
+        "jobTitle": page.author.jobTitle,
+        "url": `${ORG_DETAILS.url}/#author-${page.author.handle.replace('@','')}`,
+        "sameAs": page.author.sameAs || []
+      } : { 
+        "@id": `${ORG_DETAILS.url}/#organization` 
+      },
+      "publisher": { "@id": `${ORG_DETAILS.url}/#organization` },
+      "articleBody": page.content.replace(/<[^>]*>?/gm, ''),
+      "articleSection": page.category,
       "inLanguage": "te-IN"
     };
 
-    script.text = JSON.stringify(newsSchema);
-
-    return () => {
-      document.title = 'Sonawale | Hyderabad Live Gold & Silver Registry';
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "హోమ్", "item": ORG_DETAILS.url },
+        { "@type": "ListItem", "position": 2, "name": page.category, "item": `${ORG_DETAILS.url}/#category-${page.category?.toLowerCase().replace(/\s+/g, '-')}` },
+        { "@type": "ListItem", "position": 3, "name": page.title, "item": canonicalUrl }
+      ]
     };
-  }, [page, slug, isArticle]);
 
-  const allRelated = useMemo(() => {
+    script.text = JSON.stringify([primarySchema, breadcrumbSchema]);
+
+    // Reset scroll to top on page change
+    window.scrollTo(0, 0);
+
+    return () => { 
+      document.title = 'Sonawale | Hyderabad Live Gold & Silver Registry'; 
+    };
+  }, [page, slug, isArticle, currentGuide]);
+
+  const allRelated = useMemo<RelatedArticle[]>(() => {
     if (!isArticle || !currentGuide) return [];
-    const currentKeywords = currentGuide.title.toLowerCase().split(' ');
+    
+    const currentKeywords = (currentGuide.focusKeywords || currentGuide.title)
+      .toLowerCase()
+      .split(/[\s,]+/)
+      .filter(k => k.length > 3);
+      
     return guides
       .filter((g: Guide) => g.slug !== slug)
       .map((g: Guide) => {
-        const targetKeywords = g.title.toLowerCase().split(' ');
-        const score = targetKeywords.filter((k: string) => k.length > 3 && currentKeywords.includes(k)).length;
+        const targetText = (g.title + ' ' + (g.focusKeywords || '')).toLowerCase();
+        const score = currentKeywords.filter(k => targetText.includes(k)).length;
         return { ...g, score };
       })
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => b.score - a.score || new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
   }, [slug, guides, isArticle, currentGuide]);
 
   const displayedRelated = allRelated.slice(0, displayedCount);
 
+  // Infinite Scroll Observer
   useEffect(() => {
-    if (!isArticle) return;
+    if (!isArticle || displayedCount >= allRelated.length) return;
+
     const observer = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]) => {
-        if (entries[0].isIntersecting && displayedCount < allRelated.length) {
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true);
+          // Simulate network delay for smooth UX
           setTimeout(() => {
-            setDisplayedCount((prev: number) => prev + 2);
-          }, 400);
+            setDisplayedCount((prev) => Math.min(prev + 6, allRelated.length));
+            setIsLoadingMore(false);
+          }, 600);
         }
       },
-      { threshold: 0.1, rootMargin: '200px' }
+      { threshold: 0.1, rootMargin: '400px' }
     );
+
     if (loadMoreRef.current) observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [allRelated.length, displayedCount, isArticle]);
+  }, [allRelated.length, displayedCount, isArticle, isLoadingMore]);
 
   const handleShare = (platform: 'twitter' | 'facebook' | 'whatsapp', title: string, itemSlug: string) => {
     const url = encodeURIComponent(`${window.location.origin}/#${itemSlug}`);
-    const text = encodeURIComponent(`Market update from Sonawale: ${title}`);
+    const text = encodeURIComponent(`Market Update: ${title}`);
     let shareUrl = '';
     switch (platform) {
       case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`; break;
@@ -148,148 +197,130 @@ export const InfoPage: React.FC<InfoPageProps> = ({ slug, onBack, guides = [], o
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
-  if (!page) {
-    return (
-      <div className="p-8 text-center min-h-[50vh] flex flex-col items-center justify-center text-black">
-        <h2 className="text-2xl font-black mb-4 uppercase utility-font tracking-tighter italic">Dispatch Missing</h2>
-        <p className="text-sm opacity-50 mb-8 telugu-text">క్షమించండి, ఈ సమాచారం అందుబాటులో లేదు.</p>
-        <button onClick={onBack} className="border-2 border-black px-6 py-3 font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">Back to Home</button>
-      </div>
-    );
-  }
+  if (!page) return null;
 
   return (
-    <div className="animate-in fade-in duration-500 max-w-4xl mx-auto px-4 py-12" itemScope itemType="https://schema.org/NewsArticle">
-      <nav className="mb-8 flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-black px-4 py-2 hover:bg-black hover:text-white transition-all utility-font group text-black">
-          <span className="group-hover:-translate-x-1 transition-transform">←</span> తిరిగి హోమ్ పేజీకి
-        </button>
-        <div className="hidden sm:flex items-center gap-2 text-[8px] font-black uppercase tracking-widest opacity-40 utility-font text-black">
-          <span className="cursor-pointer hover:underline" onClick={onBack}>Home</span>
-          <span>/</span>
-          <span className="cursor-pointer hover:underline" onClick={onBack}>Archives</span>
-          <span>/</span>
-          <span className="text-black truncate max-w-[150px]">{slug}</span>
-        </div>
-      </nav>
+    <div className="max-w-4xl mx-auto px-4 py-8 md:py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <Breadcrumbs items={[
+        { label: page.category || "నివేదికలు" },
+        { label: page.title, active: true }
+      ]} />
 
-      <article className="text-black">
-        <header className="mb-12 relative">
+      <article itemScope itemType="https://schema.org/NewsArticle">
+        <header className="mb-10">
           <div className="flex items-center gap-2 mb-4 text-[#A52A2A] text-[10px] font-black uppercase tracking-widest utility-font">
-            <span className="bg-[#A52A2A] text-white px-2 py-0.5 telugu-text font-bold">తాజా సమాచారం</span>
-            <span className="telugu-text font-bold opacity-60" itemProp="articleSection">/ {isArticle ? 'Bullion Feed' : 'Static Archive'}</span>
+            <span className="bg-[#A52A2A] text-white px-2 py-0.5 telugu-text font-bold">తాజా నివేదిక</span>
           </div>
+          <h1 className="text-4xl md:text-7xl font-bold telugu-headline leading-[1.1] tracking-tighter text-black mb-6" itemProp="headline">
+            {page.title}
+          </h1>
           
-          <div className="border-l-[12px] border-black pl-6 md:pl-10 mb-8">
-            <h1 className="text-4xl md:text-7xl font-bold telugu-headline leading-[1.1] tracking-tighter text-black mb-4" itemProp="headline">
-              {page.title}
-            </h1>
-            <div className="h-1.5 w-32 bg-[#A52A2A] mt-2 mb-6"></div>
-          </div>
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-y-2 border-black py-5 mb-10 bg-white/30 px-2">
-            {page.subtitle && (
-              <p className="text-base md:text-lg italic font-serif telugu-text opacity-90 font-bold" itemProp="alternativeHeadline">
-                {page.subtitle}
-              </p>
-            )}
-            <div className="flex items-center gap-4 border-l-0 md:border-l md:border-black/20 md:pl-6">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">Broadcast:</span>
-              <div className="flex gap-4">
-                <button onClick={() => handleShare('twitter', page.title, slug)} className="hover:text-[#1DA1F2] transition-colors"><Twitter size={16} strokeWidth={2.5} /></button>
-                <button onClick={() => handleShare('facebook', page.title, slug)} className="hover:text-[#1877F2] transition-colors"><Facebook size={16} strokeWidth={2.5} /></button>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between border-y-2 border-black py-6 mb-8">
+            <div className="flex items-center gap-3">
+              {isArticle && page.author && (
+                <>
+                  <img src={page.author.avatar} alt={page.author.name} className="w-10 h-10 rounded-full border-2 border-black/5" />
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-black uppercase utility-font tracking-tight">{page.author.name}</span>
+                    <span className="text-[9px] opacity-60 uppercase font-bold utility-font">{page.author.jobTitle}</span>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-4 mt-6 md:mt-0">
+              <span className="text-[10px] font-black uppercase opacity-40 utility-font tracking-widest">Share Dispatch</span>
+              <button onClick={() => handleShare('twitter', page.title, slug)} className="hover:text-[#1DA1F2] transition-colors"><Twitter size={16} /></button>
+              <button onClick={() => handleShare('facebook', page.title, slug)} className="hover:text-[#1877F2] transition-colors"><Facebook size={16} /></button>
+              <button onClick={() => handleShare('whatsapp', page.title, slug)} className="hover:text-[#25D366] transition-colors"><Share2 size={16} /></button>
             </div>
           </div>
 
           {page.featuredImage && (
-            <div className="mb-14 relative group">
-              <div className="absolute inset-0 bg-black/5 translate-x-3 translate-y-3 -z-10 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500"></div>
-              <div className="border-2 border-black overflow-hidden bg-white">
-                <img 
-                  src={page.featuredImage} 
-                  alt={page.title} 
-                  itemProp="image"
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000 aspect-video md:aspect-[21/9]"
-                />
-              </div>
-              <div className="mt-2 text-[10px] font-black uppercase tracking-widest opacity-40 utility-font text-right flex justify-end items-center gap-2">
-                <span className="h-px w-8 bg-black/20"></span>
-                MARKET ARCHIVE IMAGE • {new Date().getFullYear()}
-              </div>
-            </div>
+            <figure className="mb-12 border-2 border-black overflow-hidden relative shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)]">
+              <img 
+                src={page.featuredImage} 
+                alt={page.imageAlt || page.title} 
+                className="w-full h-full object-cover aspect-video md:aspect-[21/9]" 
+                loading="eager"
+              />
+              <figcaption className="bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] py-2 px-4 italic flex justify-between utility-font">
+                <span>REPORTER ARCHIVE: {slug.toUpperCase()}</span>
+                <span>© SONAWALE NETWORK</span>
+              </figcaption>
+            </figure>
           )}
         </header>
 
         <div 
-          className="telugu-text prose prose-lg md:prose-xl prose-black max-w-none mb-24 drop-cap text-black"
+          className="telugu-text prose prose-lg md:prose-xl prose-black max-w-none mb-24 drop-cap selection:bg-yellow-200" 
           itemProp="articleBody"
-          dangerouslySetInnerHTML={{ __html: page.content }}
+          dangerouslySetInnerHTML={{ __html: page.content }} 
         />
       </article>
 
       {isArticle && allRelated.length > 0 && (
-        <section className="mt-32 border-t-[6px] border-black pt-20">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4 border-b-2 border-black pb-6 text-black">
-            <div>
-              <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tight utility-font telugu-text font-bold text-black">మరింత సమాచారం</h3>
-              <p className="text-sm font-bold opacity-40 italic mt-1">Recommended market analysis continues below...</p>
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest bg-black text-white px-3 py-1 utility-font">Live Feed</span>
+        <section className="mt-24 border-t-4 border-black pt-16">
+          <div className="flex items-center justify-between mb-12">
+            <h3 className="text-3xl font-black italic telugu-headline border-b-4 border-black pb-1">సంబంధిత వార్తా ప్రవాహం</h3>
+            <span className="text-[10px] font-black uppercase utility-font opacity-40">More in {page.category}</span>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
-            {displayedRelated.map((article: Guide, idx: number) => (
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+            {displayedRelated.map((article) => (
               <div 
-                key={article.slug}
-                onClick={() => onRead?.(article.slug)}
-                className="cursor-pointer group flex flex-col animate-in fade-in slide-in-from-bottom-8 duration-700"
-                style={{ animationDelay: `${(idx % 2) * 150}ms` }}
+                key={article.slug} 
+                onClick={() => onRead?.(article.slug)} 
+                className="cursor-pointer group flex flex-col"
               >
-                <div className="aspect-[16/9] overflow-hidden border-2 border-black mb-6 grayscale group-hover:grayscale-0 transition-all duration-700 relative shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-all bg-white">
-                   <img src={article.featuredImage || `https://picsum.photos/seed/${article.slug}/600/338`} alt={article.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                    <button onClick={(e) => { e.stopPropagation(); handleShare('twitter', article.title, article.slug); }} className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><Twitter size={12} strokeWidth={3} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); handleShare('facebook', article.title, article.slug); }} className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><Facebook size={12} strokeWidth={3} /></button>
-                  </div>
+                <div className="aspect-[16/9] overflow-hidden border-2 border-black mb-4 bg-gray-100 relative shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] group-hover:shadow-none transition-all">
+                   <img 
+                     src={article.featuredImage || `https://picsum.photos/seed/${article.slug}/600/338`} 
+                     alt={article.title} 
+                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
+                   />
+                   <div className="absolute top-2 left-2 bg-black text-white text-[8px] px-2 py-1 font-black uppercase tracking-widest utility-font">
+                     {article.category || 'MARKET'}
+                   </div>
                 </div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-[9px] font-black uppercase tracking-widest bg-[#A52A2A] text-white px-2 py-1 utility-font">{article.author.name}</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest opacity-30 utility-font border-l border-black/20 pl-3 text-black">{new Date().toLocaleDateString('te-IN', { month: 'short', day: 'numeric' })}</span>
-                </div>
-                <h4 className="font-bold text-2xl leading-tight telugu-headline group-hover:underline mb-3 text-black">{article.title}</h4>
-                <p className="text-base opacity-75 telugu-text line-clamp-3 italic leading-relaxed mb-6 text-black">{article.summary}</p>
-                <div className="mt-auto pt-4 border-t border-black/10 flex justify-between items-center group/btn text-black">
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] utility-font group-hover/btn:text-[#A52A2A] transition-colors">పూర్తి కథనం →</span>
-                  <div className="w-10 h-0.5 bg-black/10 group-hover/btn:w-20 group-hover/btn:bg-[#A52A2A] transition-all"></div>
+                <h4 className="font-bold text-2xl telugu-headline group-hover:underline mb-3 leading-tight decoration-2 underline-offset-4">{article.title}</h4>
+                <p className="text-[14px] opacity-70 telugu-text line-clamp-2 leading-relaxed mb-4">{article.summary}</p>
+                <div className="mt-auto flex items-center justify-between">
+                  <span className="text-[9px] font-black uppercase utility-font opacity-40">
+                    {new Date(article.date || Date.now()).toLocaleDateString('te-IN', { day: '2-digit', month: 'short' })}
+                  </span>
+                  <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-10px] group-hover:translate-x-0" />
                 </div>
               </div>
             ))}
           </div>
 
-          <div ref={loadMoreRef} className="py-24 flex flex-col items-center justify-center mt-12 w-full text-black">
+          {/* Infinite Scroll Sentinel */}
+          <div ref={loadMoreRef} className="py-24 flex flex-col items-center justify-center w-full">
             {displayedCount < allRelated.length ? (
-              <div className="flex flex-col items-center gap-4 animate-bounce">
-                <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 utility-font">Loading More Archives</span>
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 size={32} className="animate-spin opacity-20" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 utility-font">Syncing More Reports...</span>
               </div>
             ) : (
-              <div className="text-center w-full px-4">
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-black to-transparent opacity-20 mb-8"></div>
-                <p className="text-sm telugu-text font-bold italic opacity-40">మీరు ప్రస్తుత నివేదికలన్నీ చదివారు.</p>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] utility-font mt-3 opacity-30">End of Editorial Dispatch</p>
-                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="mt-8 text-[9px] font-black uppercase tracking-widest border border-black px-6 py-3 hover:bg-black hover:text-white transition-all">Back to Top</button>
+              <div className="w-full text-center border-t border-black/10 pt-8">
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-20 utility-font">End of Dispatch</span>
               </div>
             )}
           </div>
         </section>
       )}
 
-      <div className="mt-16 pt-10 border-t border-black/10 text-center">
-        <p className="text-[11px] font-black uppercase tracking-[0.4em] opacity-30 utility-font text-black">
-          SONAWALE BULLION REGISTRY • HYDERABAD • {new Date().getFullYear()}
-        </p>
-      </div>
+      {/* Static page return footer */}
+      {!isArticle && (
+        <div className="mt-20 pt-10 border-t-2 border-black text-center">
+          <button 
+            onClick={onBack}
+            className="px-8 py-4 border-2 border-black font-black uppercase tracking-widest utility-font hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none"
+          >
+            మరల హోమ్ పేజీకి
+          </button>
+        </div>
+      )}
     </div>
   );
 };
